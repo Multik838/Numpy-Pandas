@@ -1,0 +1,92 @@
+### Импортируем библиотеки
+
+import numpy as np
+import pandas as pd
+from sklearn.datasets import load_boston
+import matplotlib.pyplot as plt
+from pylab import rcParams
+
+boston = load_boston()
+
+boston.keys()
+
+data = boston.data
+
+target = boston.target
+
+feature_names = boston.feature_names
+
+### Создаём датафремы X и y
+
+X = pd.DataFrame(data, columns = feature_names)
+
+y = pd.DataFrame(target, columns = ['price'])
+
+from sklearn.model_selection import train_test_split
+
+### Разобъём модель на выборки тренировочную и тестовую
+
+Согласно условию задачи
+
+# Доля тестовых данных составляет 30%, выборка random_state = 42
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state = 42)
+
+from sklearn.linear_model import LinearRegression
+
+lr = LinearRegression()
+
+Тренируем модель по аргументам X_train (признаки недвижимости) и y_train (цены на недвижимость)
+
+lr.fit(X_train, y_train)
+
+Предскажем данные
+
+y_pred = lr.predict(X_test)
+
+y_pred.shape
+
+check_test = pd.DataFrame({
+    "y_test": y_test["price"],
+    "y_pred": y_pred.flatten(),
+}, columns = ['y_test', 'y_pred'])
+
+Сраним предсказания с фактом.
+
+check_test.head(10)
+
+### Вычислим R2 полученных предказаний с помощью r2_score из модуля sklearn.metrics
+
+from sklearn.metrics import r2_score
+
+r2_score(y_test, y_pred)
+
+check_test["error"] = check_test["y_pred"] - check_test["y_test"]
+check_test.head()
+
+### Создайте модель под названием model с помощью RandomForestRegressor из модуля sklearn.ensemble.
+
+from sklearn.ensemble import RandomForestClassifier
+
+from sklearn.model_selection import GridSearchCV
+
+from sklearn.ensemble import RandomForestRegressor
+model = RandomForestRegressor(n_estimators=1000, max_depth=12, random_state=42)
+
+model.fit(X_train, y_train.values[:, 0])
+
+y_pred = model.predict(X_test)
+y_pred.shape
+
+r2_score(y_test, y_pred)
+
+check_test = pd.DataFrame({
+    "y_test": y_test["price"],
+    "y_pred": y_pred.flatten(),
+}, columns = ['y_test', 'y_pred'])
+
+check_test.head(10)
+
+## Из полученных результатов видно, что вероятность ошибки у модели с линейной регрессией больше, чем у модели RandomForest на 0.163.
+
+Также результат выборки у значений модели RandomForest ближе к предсказанным.
