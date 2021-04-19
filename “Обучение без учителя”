@@ -1,0 +1,143 @@
+Задание 1
+Импортируйте библиотеки pandas, numpy и matplotlib.
+Загрузите "Boston House Prices dataset" из встроенных наборов 
+данных библиотеки sklearn.
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import StandardScaler
+
+%matplotlib inline
+%config InlineBackend.figure_format = 'svg'
+
+boston = load_boston()
+
+Создайте датафреймы X и y из этих данных.
+Разбейте эти датафреймы на тренировочные (X_train, y_train) и тестовые (X_test, y_test)
+с помощью функции train_test_split так, чтобы размер тестовой выборки
+составлял 20% от всех данных, при этом аргумент random_state должен быть равен 42.
+
+data = boston.data
+target = boston.target
+feature_names = boston.feature_names
+
+X = pd.DataFrame(data, columns = feature_names)
+X.head()
+
+y = pd.DataFrame(target, columns = ['price'])
+y.head()
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state = 42)
+
+scaler = StandardScaler()
+
+X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
+X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns)
+
+tsne = TSNE(n_components = 2, learning_rate = 250, random_state = 42)
+
+X_train_tsne = tsne.fit_transform(X_train_scaled)
+
+print('До:\t{}'.format(X_train_scaled.shape))
+print('После:\t{}'.format(X_train_tsne.shape))
+
+### Постройте диаграмму рассеяния на этих данных.
+
+plt.scatter(X_train_tsne[:, 0], X_train_tsne[:, 1])
+
+plt.show()
+
+Задание 2
+
+from sklearn.cluster import KMeans
+
+kmeans = KMeans(n_clusters = 2)
+
+labels_train = kmeans.fit_predict(X_train_scaled)
+
+plt.scatter(X_train_tsne[:, 0], X_train_tsne[:, 1], c=labels_train)
+
+plt.show()
+
+model = KMeans(n_clusters = 3,max_iter = 100, random_state = 42)
+
+X_train_model = model.fit_transform(X_train_scaled)
+
+print('До:\t{}'.format(X_train_scaled.shape))
+print('После:\t{}'.format(X_train_tsne.shape))
+
+kmeans = KMeans(n_clusters = 3)
+
+labels_train = kmeans.fit_predict(X_train_scaled)
+
+plt.scatter(X_train_model[:, 0], X_train_model[:, 1], c=labels_train)
+
+plt.show()
+
+Вычислите средние значения price и CRIM в разных кластерах.
+
+y_train[labels_train == 0].mean()
+y_train[labels_train == 1].mean()
+
+plt.hist(y_train[labels_train == 0], bins=20, density=True, alpha=0.5)
+plt.hist(y_train[labels_train == 1], bins=20, density=True, alpha=0.5)
+
+plt.legend(['Кластер 0', 'Кластер 1'])
+plt.xlabel('Цена')
+
+plt.show()
+
+plt.hist(X_train.loc[labels_train == 0, 'CRIM'], bins=20, density=True, alpha=0.5)
+plt.hist(X_train.loc[labels_train == 1, 'CRIM'], bins=20, density=True, alpha=0.5)
+
+plt.xlim(0, 12)
+plt.legend(['Кластер 0', 'Кластер 1'])
+plt.xlabel('CRIM')
+
+plt.show()
+
+Задание 3
+Примените модель KMeans, построенную в предыдущем задании,
+к данным из тестового набора.
+Вычислите средние значения price и CRIM в разных кластерах на тестовых данных.
+
+
+new_model_tsne = KMeans(n_clusters = 3,max_iter = 100, random_state = 42)
+
+X_test_new_model_tsne = new_model_tsne.fit_transform(X_test_scaled)
+
+print('До:\t{}'.format(X_test_scaled.shape))
+print('После:\t{}'.format(X_test_new_model_tsne.shape))
+
+kmeans = KMeans(n_clusters = 3)
+
+labels_train = kmeans.fit_predict(X_test_scaled)
+
+plt.scatter(X_test_new_model_tsne[:, 0], X_test_new_model_tsne[:, 1], c=labels_test)
+
+plt.show()
+
+y_test[labels_train == 0].mean()
+
+y_test[labels_train == 1].mean()
+
+plt.hist(y_test[labels_train == 0], bins=20, density=True, alpha=0.5)
+plt.hist(y_test[labels_train == 1], bins=20, density=True, alpha=0.5)
+
+plt.legend(['Кластер 0', 'Кластер 1'])
+plt.xlabel('Цена')
+
+plt.show()
+
+plt.hist(X_test.loc[labels_train == 0, 'CRIM'], bins=20, density=True, alpha=0.5)
+plt.hist(X_test.loc[labels_train == 1, 'CRIM'], bins=20, density=True, alpha=0.5)
+
+plt.xlim(0, 12)
+plt.legend(['Кластер 0', 'Кластер 1'])
+plt.xlabel('CRIM')
+
+plt.show()
